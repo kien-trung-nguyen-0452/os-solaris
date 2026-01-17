@@ -105,3 +105,5 @@ src/
 - Time quantum mặc định là 3 đơn vị thời gian
 - Priority: số nhỏ hơn = độ ưu tiên cao hơn (1 = cao nhất, 10 = thấp nhất)
 
+
+

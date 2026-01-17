@@ -157,5 +157,9 @@ public abstract class Scheduler {
     public int getCurrentTime() {
         return currentTime;
     }
+    
+    public List<Process> getCompletedProcesses() {
+        return new ArrayList<>(completedProcesses);
+    }
 }
 
