@@ -4,29 +4,29 @@
  */
 public class Process {
     public enum ProcessState {
-        NEW,        // Process is being created
-        READY,      // Process is ready to run
-        RUNNING,    // Process is currently executing
-        WAITING,    // Process is waiting for I/O or event
-        TERMINATED  // Process has finished execution
+        NEW,         // Process is being created
+        READY,       // Process is ready to run
+        RUNNING,     // Process is currently executing
+        WAITING,     // Process is waiting for I/O or event
+        TERMINATED   // Process has finished execution
     }
     
     private int processId;
     private String processName;
     private ProcessState state;
-    private int priority;           // Priority level (1 = highest, 10 = lowest)
-    private int burstTime;          // CPU burst time required
-    private int remainingTime;      // Remaining CPU time
-    private int arrivalTime;        // Time when process arrives
-    private int startTime;          // Time when process starts execution
-    private int completionTime;     // Time when process completes
-    private int waitingTime;        // Total waiting time
-    private int turnaroundTime;     // Total turnaround time
+    private int priorityLevel;        // Priority level (1 = highest, 10 = lowest)
+    private int burstTime;            // CPU burst time required
+    private int remainingTime;        // Remaining CPU time
+    private int arrivalTime;          // Time when process arrives
+    private int startTime;            // Time when process starts execution
+    private int completionTime;       // Time when process completes
+    private int waitingTime;          // Total waiting time
+    private int turnaroundTime;       // Total turnaround time
     
-    public Process(int processId, String processName, int priority, int burstTime, int arrivalTime) {
+    public Process(int processId, String processName, int priorityLevel, int burstTime, int arrivalTime) {
         this.processId = processId;
         this.processName = processName;
-        this.priority = priority;
+        this.priorityLevel = priorityLevel;
         this.burstTime = burstTime;
         this.remainingTime = burstTime;
         this.arrivalTime = arrivalTime;
@@ -37,7 +37,7 @@ public class Process {
         this.turnaroundTime = 0;
     }
     
-    // Getters and Setters
+    // Accessor methods
     public int getProcessId() {
         return processId;
     }
@@ -54,12 +54,12 @@ public class Process {
         this.state = state;
     }
     
-    public int getPriority() {
-        return priority;
+    public int getPriorityLevel() {
+        return priorityLevel;
     }
     
-    public void setPriority(int priority) {
-        this.priority = priority;
+    public void setPriorityLevel(int priorityLevel) {
+        this.priorityLevel = priorityLevel;
     }
     
     public int getBurstTime() {
@@ -136,9 +136,6 @@ public class Process {
     @Override
     public String toString() {
         return String.format("Process[ID=%d, Name=%s, State=%s, Priority=%d, BurstTime=%d, RemainingTime=%d]",
-                processId, processName, state, priority, burstTime, remainingTime);
+                processId, processName, state, priorityLevel, burstTime, remainingTime);
     }
 }
-
-
-

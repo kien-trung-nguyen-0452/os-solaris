@@ -2,9 +2,9 @@ import java.util.*;
 
 /**
  * Round Robin Scheduler implementation
- * Each process gets a fixed time quantum to execute
+ * Each process receives a fixed time quantum to execute
  */
-public class RoundRobinScheduler extends Scheduler {
+public class RoundRobinScheduler extends ProcessScheduler {
     private List<Process> allProcesses;
     private int processIndex;
     
@@ -43,8 +43,8 @@ public class RoundRobinScheduler extends Scheduler {
         // Add processes that have arrived at current time
         while (processIndex < allProcesses.size()) {
             Process p = allProcesses.get(processIndex);
-            if (p.getArrivalTime() <= currentTime) {
-                addProcess(p);
+            if (p.getArrivalTime() <= systemClock) {
+                enqueueProcess(p);
                 processIndex++;
             } else {
                 break;
@@ -60,7 +60,7 @@ public class RoundRobinScheduler extends Scheduler {
     @Override
     public void schedule() {
         // Reset for scheduling
-        currentTime = 0;
+        systemClock = 0;
         currentProcess = null;
         completedProcesses.clear();
         readyQueue.clear();

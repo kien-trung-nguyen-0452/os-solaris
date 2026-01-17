@@ -4,7 +4,7 @@ import java.util.*;
  * Priority Scheduler implementation
  * Processes with higher priority (lower number) are scheduled first
  */
-public class PriorityScheduler extends Scheduler {
+public class PriorityScheduler extends ProcessScheduler {
     private List<Process> allProcesses;
     private int processIndex;
     
@@ -35,7 +35,7 @@ public class PriorityScheduler extends Scheduler {
         
         while (iterator.hasNext()) {
             Process p = iterator.next();
-            if (highestPriority == null || p.getPriority() < highestPriority.getPriority()) {
+            if (highestPriority == null || p.getPriorityLevel() < highestPriority.getPriorityLevel()) {
                 highestPriority = p;
             }
         }
@@ -50,12 +50,12 @@ public class PriorityScheduler extends Scheduler {
         // Check if a higher priority process has arrived
         if (!readyQueue.isEmpty()) {
             Process highestInQueue = readyQueue.stream()
-                    .min(Comparator.comparingInt(Process::getPriority))
+                    .min(Comparator.comparingInt(Process::getPriorityLevel))
                     .orElse(null);
             
-            if (highestInQueue != null && highestInQueue.getPriority() < currentProcess.getPriority()) {
-                System.out.println(String.format("[%s] Time %d: Higher priority process %d detected, preempting current process",
-                        schedulerName, currentTime, highestInQueue.getProcessId()));
+            if (highestInQueue != null && highestInQueue.getPriorityLevel() < currentProcess.getPriorityLevel()) {
+                System.out.println(String.format("  [%s] Clock %3d -> Higher priority Process #%d detected, preempting current",
+                        schedulerName, systemClock, highestInQueue.getProcessId()));
                 return true;
             }
         }
@@ -69,8 +69,8 @@ public class PriorityScheduler extends Scheduler {
         // Add processes that have arrived at current time
         while (processIndex < allProcesses.size()) {
             Process p = allProcesses.get(processIndex);
-            if (p.getArrivalTime() <= currentTime) {
-                addProcess(p);
+            if (p.getArrivalTime() <= systemClock) {
+                enqueueProcess(p);
                 processIndex++;
             } else {
                 break;
@@ -86,7 +86,7 @@ public class PriorityScheduler extends Scheduler {
     @Override
     public void schedule() {
         // Reset for scheduling
-        currentTime = 0;
+        systemClock = 0;
         currentProcess = null;
         completedProcesses.clear();
         readyQueue.clear();

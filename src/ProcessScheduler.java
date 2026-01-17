@@ -1,21 +1,21 @@
 import java.util.*;
 
 /**
- * Abstract Scheduler class that defines the interface for different scheduling algorithms
+ * Abstract ProcessScheduler class that defines the interface for different process scheduling algorithms
  */
-public abstract class Scheduler {
+public abstract class ProcessScheduler {
     protected String schedulerName;
     protected Queue<Process> readyQueue;
     protected Process currentProcess;
-    protected int currentTime;
+    protected int systemClock;
     protected List<Process> completedProcesses;
-    protected int timeQuantum; // For Round Robin
+    protected int timeQuantum; // For time-sliced scheduling
     
-    public Scheduler(String schedulerName, int timeQuantum) {
+    public ProcessScheduler(String schedulerName, int timeQuantum) {
         this.schedulerName = schedulerName;
         this.readyQueue = new LinkedList<>();
         this.currentProcess = null;
-        this.currentTime = 0;
+        this.systemClock = 0;
         this.completedProcesses = new ArrayList<>();
         this.timeQuantum = timeQuantum;
     }
@@ -23,12 +23,11 @@ public abstract class Scheduler {
     /**
      * Add a process to the ready queue
      */
-    public void addProcess(Process process) {
+    public void enqueueProcess(Process process) {
         if (process != null) {
             process.setState(Process.ProcessState.READY);
             readyQueue.offer(process);
-            System.out.println(String.format("[%s] Time %d: Added Process %d to ready queue",
-                    schedulerName, currentTime, process.getProcessId()));
+            // Silent enqueue - no output
         }
     }
     
@@ -41,7 +40,9 @@ public abstract class Scheduler {
      * Schedule and execute processes
      */
     public void schedule() {
-        System.out.println(String.format("\n========== %s Scheduling Started ==========", schedulerName));
+        System.out.println(String.format("\n+----------------------------------------------------------------------+"));
+        System.out.println(String.format("|  %-60s |", schedulerName + " - Execution Started"));
+        System.out.println("+----------------------------------------------------------------------+");
         
         // Check for initial arrivals
         checkNewArrivals();
@@ -55,7 +56,7 @@ public abstract class Scheduler {
             if (currentProcess == null && !readyQueue.isEmpty()) {
                 currentProcess = selectNextProcess();
                 if (currentProcess != null) {
-                    Dispatcher.dispatch(currentProcess, currentTime);
+                    ProcessDispatcher.dispatch(currentProcess, systemClock);
                 }
             }
             
@@ -65,14 +66,14 @@ public abstract class Scheduler {
             } else {
                 // If no process to run, advance time to next arrival
                 if (hasMoreProcesses()) {
-                    currentTime++;
+                    systemClock++;
                 } else {
                     break;
                 }
             }
         }
         
-        printStatistics();
+        displayStatistics();
     }
     
     /**
@@ -87,20 +88,20 @@ public abstract class Scheduler {
      */
     protected void executeCurrentProcess() {
         int executionTime = currentProcess.execute(timeQuantum);
-        currentTime += executionTime;
+        systemClock += executionTime;
         
-        System.out.println(String.format("[%s] Time %d: Executing Process %d for %d time units",
-                schedulerName, currentTime, currentProcess.getProcessId(), executionTime));
+        System.out.println(String.format("  [%s] Clock %3d -> Executing Process #%d (%s) for %d time units",
+                schedulerName, systemClock, currentProcess.getProcessId(), currentProcess.getProcessName(), executionTime));
         
         if (currentProcess.isCompleted()) {
-            Dispatcher.complete(currentProcess, currentTime);
+            ProcessDispatcher.complete(currentProcess, systemClock);
             completedProcesses.add(currentProcess);
             currentProcess = null;
         } else {
             // Preempt if time quantum expired
             if (shouldPreempt()) {
-                Dispatcher.preempt(currentProcess, currentTime);
-                addProcess(currentProcess);
+                ProcessDispatcher.preempt(currentProcess, systemClock);
+                enqueueProcess(currentProcess);
                 currentProcess = null;
             }
         }
@@ -119,18 +120,21 @@ public abstract class Scheduler {
     protected abstract void checkNewArrivals();
     
     /**
-     * Print scheduling statistics
+     * Display scheduling statistics
      */
-    protected void printStatistics() {
-        System.out.println(String.format("\n========== %s Statistics ==========", schedulerName));
-        System.out.println("Process ID | Process Name | Arrival Time | Burst Time | Completion Time | Turnaround Time | Waiting Time");
-        System.out.println("--------------------------------------------------------------------------------------------------------");
+    protected void displayStatistics() {
+        System.out.println(String.format("\n+----------------------------------------------------------------------+"));
+        System.out.println(String.format("|  %-60s |", schedulerName + " - Performance Summary"));
+        System.out.println("+----------+--------------+----------+----------+--------------+--------------+-------------+");
+        System.out.println("| Process  | Process Name | Arrival  |  Burst   |  Completion  |  Turnaround  |   Waiting   |");
+        System.out.println("|    ID    |              |   Time   |   Time   |     Time     |     Time     |    Time     |");
+        System.out.println("+----------+--------------+----------+----------+--------------+--------------+-------------+");
         
         double totalTurnaround = 0;
         double totalWaiting = 0;
         
         for (Process p : completedProcesses) {
-            System.out.println(String.format("%10d | %12s | %12d | %10d | %15d | %15d | %12d",
+            System.out.println(String.format("|    %2d    |  %-12s |    %2d    |    %2d    |      %2d      |      %2d      |      %2d      |",
                     p.getProcessId(), p.getProcessName(), p.getArrivalTime(),
                     p.getBurstTime(), p.getCompletionTime(), p.getTurnaroundTime(), p.getWaitingTime()));
             
@@ -142,24 +146,24 @@ public abstract class Scheduler {
             double avgTurnaround = totalTurnaround / completedProcesses.size();
             double avgWaiting = totalWaiting / completedProcesses.size();
             
-            System.out.println("--------------------------------------------------------------------------------------------------------");
-            System.out.println(String.format("Average Turnaround Time: %.2f", avgTurnaround));
-            System.out.println(String.format("Average Waiting Time: %.2f", avgWaiting));
+            System.out.println("+----------+--------------+----------+----------+--------------+--------------+-------------+");
+            System.out.println(String.format("|  Average Turnaround Time: %6.2f units                                    |", avgTurnaround));
+            System.out.println(String.format("|  Average Waiting Time:     %6.2f units                                    |", avgWaiting));
         }
         
-        System.out.println(String.format("Total Execution Time: %d\n", currentTime));
+        System.out.println(String.format("|  Total Execution Time:      %3d units                                    |", systemClock));
+        System.out.println("+----------------------------------------------------------------------+\n");
     }
     
     public String getSchedulerName() {
         return schedulerName;
     }
     
-    public int getCurrentTime() {
-        return currentTime;
+    public int getSystemClock() {
+        return systemClock;
     }
     
     public List<Process> getCompletedProcesses() {
         return new ArrayList<>(completedProcesses);
     }
 }
-

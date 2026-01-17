@@ -9,13 +9,12 @@ public class BenchmarkComparator {
      * Compare two benchmark metrics and print detailed comparison
      */
     public static void compare(BenchmarkMetrics metrics1, BenchmarkMetrics metrics2) {
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("   DETAILED BENCHMARK COMPARISON");
-        System.out.println("=".repeat(70));
-        
-        System.out.printf("%-30s | %-20s | %-20s | %-10s\n", 
+        System.out.println("\n+======================================================================+");
+        System.out.println("|                    DETAILED BENCHMARK COMPARISON                        |");
+        System.out.println("+======================================================================+");
+        System.out.printf("|  %-30s |  %-20s |  %-20s |  %-10s  |\n", 
             "Metric", metrics1.getSchedulerName(), metrics2.getSchedulerName(), "Winner");
-        System.out.println("-".repeat(70));
+        System.out.println("+======================================================================+");
         
         // Average Turnaround Time
         compareMetric("Avg Turnaround Time", 
@@ -53,7 +52,7 @@ public class BenchmarkComparator {
             (double) metrics2.getContextSwitchCount(), 
             true); // Lower is better
         
-        System.out.println("=".repeat(70));
+        System.out.println("+======================================================================+");
         
         // Overall recommendation
         printRecommendation(metrics1, metrics2);
@@ -67,7 +66,7 @@ public class BenchmarkComparator {
             winner = value1 > value2 ? "Scheduler 1" : (value1 < value2 ? "Scheduler 2" : "Tie");
         }
         
-        System.out.printf("%-30s | %-20.2f | %-20.2f | %-10s\n", 
+        System.out.printf("|  %-30s |  %-20.2f |  %-20.2f |  %-10s  |\n", 
             metricName, value1, value2, winner);
     }
     
@@ -94,19 +93,18 @@ public class BenchmarkComparator {
         if (m1.getContextSwitchCount() < m2.getContextSwitchCount()) score1++;
         else if (m1.getContextSwitchCount() > m2.getContextSwitchCount()) score2++;
         
-        System.out.println("\nOverall Score:");
-        System.out.printf("  %s: %d points\n", m1.getSchedulerName(), score1);
-        System.out.printf("  %s: %d points\n", m2.getSchedulerName(), score2);
+        System.out.println("|  Overall Performance Score:                                              |");
+        System.out.printf("|    %-50s: %2d points                        |\n", m1.getSchedulerName(), score1);
+        System.out.printf("|    %-50s: %2d points                        |\n", m2.getSchedulerName(), score2);
         
         if (score1 > score2) {
-            System.out.printf("\n✓ Recommendation: %s performs better for this workload\n", 
-                m1.getSchedulerName());
+            System.out.printf("|  [*] Recommendation: %-50s  |\n", m1.getSchedulerName() + " performs better");
         } else if (score2 > score1) {
-            System.out.printf("\n✓ Recommendation: %s performs better for this workload\n", 
-                m2.getSchedulerName());
+            System.out.printf("|  [*] Recommendation: %-50s  |\n", m2.getSchedulerName() + " performs better");
         } else {
-            System.out.println("\n✓ Both schedulers perform similarly for this workload");
+            System.out.println("|  [*] Both schedulers perform similarly for this workload              |");
         }
+        System.out.println("+======================================================================+");
     }
     
     /**
@@ -123,5 +121,3 @@ public class BenchmarkComparator {
         return report.toString();
     }
 }
-
-

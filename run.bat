@@ -1,5 +1,5 @@
 @echo off
-echo Running OS Simulation...
+echo Running Process Scheduling System...
 cd src
 if not exist *.class (
     echo Classes not found. Please compile first using compile.bat
@@ -7,7 +7,7 @@ if not exist *.class (
     pause
     exit /b 1
 )
-java OSSimulationMain
+java ProcessSchedulingDemo
 cd ..
 pause
 

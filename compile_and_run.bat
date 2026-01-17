@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo   OS Simulation - Compile and Run
+echo   Process Scheduling System - Compile and Run
 echo ========================================
 echo.
 
@@ -18,12 +18,13 @@ echo Compilation successful!
 echo.
 echo Running simulation...
 echo.
-java OSSimulationMain
+java ProcessSchedulingDemo
 
 cd ..
 echo.
 echo Simulation completed!
 pause
+
 
 
 

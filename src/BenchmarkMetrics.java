@@ -100,18 +100,18 @@ public class BenchmarkMetrics {
      * Print formatted metrics
      */
     public void printMetrics() {
-        System.out.println("\n" + "=".repeat(60));
-        System.out.println("   BENCHMARK METRICS: " + schedulerName);
-        System.out.println("=".repeat(60));
-        System.out.printf("Total Processes:           %d\n", totalProcesses);
-        System.out.printf("Total Execution Time:      %d time units\n", totalExecutionTime);
-        System.out.printf("Context Switches:          %d\n", contextSwitchCount);
-        System.out.printf("Average Turnaround Time:    %.2f\n", averageTurnaroundTime);
-        System.out.printf("Average Waiting Time:      %.2f\n", averageWaitingTime);
-        System.out.printf("Average Response Time:     %.2f\n", averageResponseTime);
-        System.out.printf("Throughput:               %.4f processes/time unit\n", throughput);
-        System.out.printf("CPU Utilization:           %.2f%%\n", cpuUtilization);
-        System.out.println("=".repeat(60));
+        System.out.println("\n+====================================================================+");
+        System.out.println(String.format("|  PERFORMANCE ANALYSIS: %-42s |", schedulerName));
+        System.out.println("+====================================================================+");
+        System.out.printf("|  Total Processes Completed:        %3d processes              |\n", totalProcesses);
+        System.out.printf("|  Total Execution Time:            %3d time units            |\n", totalExecutionTime);
+        System.out.printf("|  Context Switch Operations:       %3d switches              |\n", contextSwitchCount);
+        System.out.printf("|  Average Turnaround Time:          %6.2f units              |\n", averageTurnaroundTime);
+        System.out.printf("|  Average Waiting Time:             %6.2f units              |\n", averageWaitingTime);
+        System.out.printf("|  Average Response Time:            %6.2f units              |\n", averageResponseTime);
+        System.out.printf("|  Throughput Rate:                  %6.4f proc/time unit     |\n", throughput);
+        System.out.printf("|  CPU Utilization Percentage:       %6.2f%%                 |\n", cpuUtilization);
+        System.out.println("+====================================================================+");
     }
     
     /**
@@ -134,5 +134,3 @@ public class BenchmarkMetrics {
         );
     }
 }
-
-

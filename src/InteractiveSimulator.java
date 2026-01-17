@@ -2,25 +2,25 @@ import java.util.*;
 import java.io.*;
 
 /**
- * InteractiveSimulator provides a command-line interface for the OS simulation
+ * InteractiveSimulator provides a command-line interface for the process scheduling simulation
  * with benchmarking capabilities
  */
 public class InteractiveSimulator {
     private Scanner scanner;
-    private ProcessManager processManager;
+    private ProcessRegistry processRegistry;
     
     public InteractiveSimulator() {
         this.scanner = new Scanner(System.in);
-        this.processManager = new ProcessManager();
+        this.processRegistry = new ProcessRegistry();
     }
     
     /**
      * Main interactive menu
      */
     public void run() {
-        System.out.println("========================================");
-        System.out.println("   OS Kernel Simulation - Interactive");
-        System.out.println("========================================\n");
+        System.out.println("\n+======================================================================+");
+        System.out.println("|     PROCESS SCHEDULING SYSTEM - INTERACTIVE MODE             |");
+        System.out.println("+======================================================================+\n");
         
         while (true) {
             printMainMenu();
@@ -77,7 +77,7 @@ public class InteractiveSimulator {
     
     private void inputProcessesManually() {
         System.out.println("\n--- Input Processes Manually ---");
-        processManager = new ProcessManager();
+        processRegistry = new ProcessRegistry();
         
         int numProcesses = getIntInput("Number of processes: ");
         
@@ -88,32 +88,33 @@ public class InteractiveSimulator {
             int burstTime = getIntInput("Burst time: ");
             int arrivalTime = getIntInput("Arrival time: ");
             
-            processManager.createProcess(name, priority, burstTime, arrivalTime);
+            processRegistry.createProcess(name, priority, burstTime, arrivalTime);
         }
         
-        System.out.println("\n✓ Processes created successfully!");
-        processManager.printAllProcesses();
+        System.out.println("\n[*] Processes created successfully!");
+        processRegistry.printAllProcesses();
     }
     
     private void useDefaultProcesses() {
-        System.out.println("\n--- Using Default Processes ---");
-        processManager = new ProcessManager();
-        processManager.createDefaultProcesses();
-        processManager.printAllProcesses();
+        System.out.println("\n>>> Loading default process set...");
+        processRegistry = new ProcessRegistry();
+        processRegistry.createDefaultProcesses();
+        System.out.println(">>> Default processes loaded successfully!");
+        processRegistry.printAllProcesses();
     }
     
     private void runBenchmark() {
-        if (processManager.getAllProcesses().isEmpty()) {
+        if (processRegistry.getAllProcesses().isEmpty()) {
             System.out.println("No processes! Using default processes.");
             useDefaultProcesses();
         }
         
-        System.out.println("\n--- Running Benchmark ---");
+        System.out.println("\n>>> Starting benchmark analysis...");
         int timeQuantum = getIntInput("Time quantum (default 3): ", 3);
         
         // Create process copies
-        List<Process> processesRR = processManager.createProcessCopies();
-        List<Process> processesPriority = processManager.createProcessCopies();
+        List<Process> processesRR = processRegistry.duplicateProcesses();
+        List<Process> processesPriority = processRegistry.duplicateProcesses();
         
         // Create schedulers
         RoundRobinScheduler rrScheduler = new RoundRobinScheduler(timeQuantum);
@@ -124,12 +125,12 @@ public class InteractiveSimulator {
         priorityScheduler.initializeProcesses(processesPriority);
         
         // Run schedulers
-        System.out.println("\n--- Running Round Robin Scheduler ---");
+        System.out.println("\n>>> Executing Round Robin Scheduler...");
         long startTime = System.currentTimeMillis();
         rrScheduler.schedule();
         long rrTime = System.currentTimeMillis() - startTime;
         
-        System.out.println("\n--- Running Priority Scheduler ---");
+        System.out.println("\n>>> Executing Priority Scheduler...");
         startTime = System.currentTimeMillis();
         priorityScheduler.schedule();
         long priorityTime = System.currentTimeMillis() - startTime;
@@ -139,16 +140,16 @@ public class InteractiveSimulator {
         int priorityContextSwitches = countContextSwitches(priorityScheduler);
         
         BenchmarkMetrics rrMetrics = new BenchmarkMetrics(
-            "Round Robin", 
+            "Round Robin Scheduler", 
             rrScheduler.getCompletedProcesses(),
-            rrScheduler.getCurrentTime(),
+            rrScheduler.getSystemClock(),
             rrContextSwitches
         );
         
         BenchmarkMetrics priorityMetrics = new BenchmarkMetrics(
-            "Priority",
+            "Priority Scheduler",
             priorityScheduler.getCompletedProcesses(),
-            priorityScheduler.getCurrentTime(),
+            priorityScheduler.getSystemClock(),
             priorityContextSwitches
         );
         
@@ -165,7 +166,7 @@ public class InteractiveSimulator {
     }
     
     private void runSingleScheduler() {
-        if (processManager.getAllProcesses().isEmpty()) {
+        if (processRegistry.getAllProcesses().isEmpty()) {
             System.out.println("No processes! Using default processes.");
             useDefaultProcesses();
         }
@@ -176,9 +177,9 @@ public class InteractiveSimulator {
         int choice = getIntInput("Choose scheduler: ");
         
         int timeQuantum = getIntInput("Time quantum (default 3): ", 3);
-        List<Process> processes = processManager.createProcessCopies();
+        List<Process> processes = processRegistry.duplicateProcesses();
         
-        Scheduler scheduler;
+        ProcessScheduler scheduler;
         if (choice == 1) {
             scheduler = new RoundRobinScheduler(timeQuantum);
             ((RoundRobinScheduler) scheduler).initializeProcesses(processes);
@@ -210,7 +211,7 @@ public class InteractiveSimulator {
         
         try {
             PrintWriter writer = new PrintWriter(new FileWriter(filename + ".txt"));
-            writer.println("OS KERNEL SIMULATION BENCHMARK RESULTS");
+            writer.println("PROCESS SCHEDULING SYSTEM BENCHMARK RESULTS");
             writer.println("=".repeat(70));
             writer.println();
             writer.println(lastRRMetrics.getMetricsString());
@@ -220,17 +221,17 @@ public class InteractiveSimulator {
             writer.println(BenchmarkComparator.generateComparisonReport(lastRRMetrics, lastPriorityMetrics));
             writer.close();
             
-            System.out.println("✓ Results exported to " + filename + ".txt");
+            System.out.println("[*] Results exported to " + filename + ".txt");
         } catch (IOException e) {
             System.out.println("Error exporting results: " + e.getMessage());
         }
     }
     
     private void viewCurrentProcesses() {
-        if (processManager.getAllProcesses().isEmpty()) {
+        if (processRegistry.getAllProcesses().isEmpty()) {
             System.out.println("No processes!");
         } else {
-            processManager.printAllProcesses();
+            processRegistry.printAllProcesses();
         }
     }
     
@@ -263,7 +264,7 @@ public class InteractiveSimulator {
         return scanner.nextLine().trim();
     }
     
-    private int countContextSwitches(Scheduler scheduler) {
+    private int countContextSwitches(ProcessScheduler scheduler) {
         // Estimate context switches (each preemption + dispatch = 2 switches)
         // This is a simplified count
         return scheduler.getCompletedProcesses().size() * 2;
@@ -273,4 +274,3 @@ public class InteractiveSimulator {
     private BenchmarkMetrics lastRRMetrics;
     private BenchmarkMetrics lastPriorityMetrics;
 }
-
